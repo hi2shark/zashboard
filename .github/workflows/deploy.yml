@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build Docker Image
 
 on:
   push:
@@ -6,99 +6,12 @@ on:
       - main
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  packages: write
 
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-
-    steps:
-      - name: release-please
-        id: release
-        uses: googleapis/release-please-action@v5
-        with:
-          token: ${{ secrets.PAT }}
-          release-type: node
-          target-branch: main
-
-  build-and-deploy:
-    needs: release-please
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # Each font variant is published to its own gh-pages branch.
-        font:
-          - { key: all, suffix: '' }
-          - { key: cdn, suffix: '-cdn-fonts' }
-          - { key: firasans, suffix: '-firasans-only' }
-          - { key: misans, suffix: '-misans-only' }
-          - { key: pingfang, suffix: '-pingfang-only' }
-          - { key: sarasa, suffix: '-sarasa-only' }
-          - { key: none, suffix: '-no-fonts' }
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-      - uses: pnpm/action-setup@v6
-
-      - name: Install and Build 🔧
-        env:
-          FONT: ${{ matrix.font.key }}
-        run: |
-          pnpm i
-          pnpm run build
-          echo 'board.zash.run.place' > ./dist/CNAME
-
-      - name: Deploy 🚀
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.PAT }}
-          publish_dir: ./dist
-          publish_branch: gh-pages${{ matrix.font.suffix }}
-          force_orphan: true
-
-  release-dist:
-    needs: release-please
-    runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.release_created }}
-    strategy:
-      fail-fast: false
-      matrix:
-        font:
-          - { key: all, suffix: '' }
-          - { key: cdn, suffix: '-cdn-fonts' }
-          - { key: firasans, suffix: '-firasans-only' }
-          - { key: misans, suffix: '-misans-only' }
-          - { key: pingfang, suffix: '-pingfang-only' }
-          - { key: sarasa, suffix: '-sarasa-only' }
-          - { key: none, suffix: '-no-fonts' }
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-      - uses: pnpm/action-setup@v6
-
-      - name: Build and Zip the dist folder
-        env:
-          FONT: ${{ matrix.font.key }}
-        run: |
-          pnpm i
-          pnpm run build
-          zip -r dist${{ matrix.font.suffix }}.zip dist
-
-      - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v3
-        with:
-          files: dist${{ matrix.font.suffix }}.zip
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
-
   release-image:
-    needs: release-please
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.release_created }}
     steps:
       - uses: actions/checkout@v6
 
@@ -109,14 +22,22 @@ jobs:
         uses: docker/setup-buildx-action@v4
         id: buildx
 
-      - name: login to ghcr.io
-        uses: docker/login-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.PAT }}
+          password: ${{ github.token }}
 
-      - name: build and publish ghcr.io docker image
+      - name: extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+
+      - name: build and publish docker image
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -124,8 +45,7 @@ jobs:
           file: Dockerfile
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: |
-            ghcr.io/zephyruso/zashboard:latest
-            ghcr.io/zephyruso/zashboard:${{ needs.release-please.outputs.tag_name }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
