@@ -1,4 +1,5 @@
 import { capabilities } from '@/assembly/backend'
+import { hasAdaptiveWeightedGroup } from '@/assembly/proxies'
 import { ROUTE_NAME } from '@/constant'
 import { renderRoutes } from '@/helper'
 import { i18n } from '@/i18n'
@@ -41,6 +42,11 @@ const childrenRouter = [
     path: 'rules',
     name: ROUTE_NAME.rules,
     component: RulesPage,
+  },
+  {
+    path: 'adaptive',
+    name: ROUTE_NAME.adaptive,
+    component: () => import('@/views/AdaptivePage.vue'),
   },
   {
     path: 'tools',
@@ -113,6 +119,12 @@ router.beforeEach((to, from) => {
   const requiredCap = typeof to.name === 'string' ? ROUTE_CAPABILITY[to.name] : undefined
   if (requiredCap && !capabilities.value[requiredCap]) {
     router.push({ name: ROUTE_NAME.proxies })
+    return
+  }
+
+  // adaptive-weighted 是配置级存在性门控，不是通道能力。
+  if (to.name === ROUTE_NAME.adaptive && !hasAdaptiveWeightedGroup.value) {
+    router.push({ name: ROUTE_NAME.proxies })
   }
 })
 
@@ -130,6 +142,12 @@ watch(capabilities, (currentCapabilities) => {
   const routeName = router.currentRoute.value.name
   const requiredCap = typeof routeName === 'string' ? ROUTE_CAPABILITY[routeName] : undefined
   if (requiredCap && !currentCapabilities[requiredCap]) {
+    router.push({ name: ROUTE_NAME.proxies })
+  }
+})
+
+watch(hasAdaptiveWeightedGroup, (exists) => {
+  if (!exists && router.currentRoute.value.name === ROUTE_NAME.adaptive) {
     router.push({ name: ROUTE_NAME.proxies })
   }
 })

@@ -60,8 +60,109 @@ export type Proxy = {
   hidden?: boolean
   selectable?: boolean
   testUrl?: string
+  strategy?: string
+  addr?: string
   'dialer-proxy'?: string
   'provider-name'?: string
+}
+
+export type AdaptiveMetricsCounters = {
+  tcpAttemptsTotal: number
+  tcpSuccessesTotal: number
+  tcpFailuresTotal: number
+  tcpCanceledTotal: number
+  retryAttemptsTotal: number
+  udpSelectionsTotal: number
+  probeAttemptsTotal: number
+  probeSuccessesTotal: number
+  probeFailuresTotal: number
+  probeCanceledTotal: number
+  ejectionsTotal: number
+  recoveringTransitionsTotal: number
+  normalTransitionsTotal: number
+}
+
+export type AdaptiveMetricsConfig = {
+  targetScope: string
+  probeMode: string
+  probeIntervalMillis: number
+  probeTimeoutMillis: number
+  failureThreshold: number
+  ejectDurationMillis: number
+  slowStartDurationMillis: number
+  increaseStep: number
+  decreaseStep: number
+  retries: number
+  baseWeight: number
+  maxWeight: number
+  minWeight: number
+  ewmaAlpha: number
+}
+
+export type AdaptiveMetricsProbe = {
+  mode: string
+  running: boolean
+  intervalMillis: number
+  timeoutMillis: number
+  maxConcurrency: number
+}
+
+export type AdaptiveMetricsLimits = {
+  maxTargets: number
+  stateTtlMillis: number
+}
+
+export type AdaptiveMetricsTargetKey = {
+  key: string
+  network: string
+  host: string
+  port: number
+}
+
+export type AdaptiveMetricsObservedTarget = AdaptiveMetricsTargetKey & {
+  probeEligible: boolean
+  lastSeen: string
+}
+
+export type AdaptiveMetricsNode = {
+  name: string
+  state: string
+  eligible: boolean
+  ejectionActive: boolean
+  hasSample: boolean
+  baseWeight: number
+  currentWeight: number
+  effectiveWeight: number
+  slowStartProgress: number
+  dialLatencyEwmaMillis: number
+  successRateEwma: number
+  consecutiveFailures: number
+  activeConnections: number
+  ejectedUntil: string | null
+  recoveringAt: string | null
+  lastSampleAt: string | null
+  lastBusinessSampleAt: string | null
+  lastProbeSampleAt: string | null
+  lastError: string
+  lastErrorAt: string | null
+  counters: AdaptiveMetricsCounters
+}
+
+export type AdaptiveMetricsTarget = AdaptiveMetricsTargetKey & {
+  nodes: AdaptiveMetricsNode[]
+}
+
+export type AdaptiveMetricsSnapshot = {
+  group: string
+  strategy: string
+  generatedAt: string
+  targetScope: string
+  config: AdaptiveMetricsConfig
+  probe: AdaptiveMetricsProbe
+  limits: AdaptiveMetricsLimits
+  totals: AdaptiveMetricsCounters
+  observedTargets: AdaptiveMetricsObservedTarget[]
+  targets: AdaptiveMetricsTarget[]
 }
 
 export type SubscriptionInfo = {

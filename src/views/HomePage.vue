@@ -114,6 +114,7 @@ import { fetchConfigs } from '@/assembly/config'
 import { initConnections, stopConnections } from '@/store/connections'
 import { initLogs, stopLogs } from '@/store/logs'
 import { initSatistic, stopSatistic } from '@/store/overview'
+import { stopAdaptive } from '@/store/adaptive'
 import { fetchProxies, resetProxies } from '@/assembly/proxies'
 import { proxiesTabShow } from '@/assembly/proxies'
 import { fetchRules, rulesTabShow } from '@/assembly/rules'
@@ -169,6 +170,7 @@ watch(
       stopConnections()
       stopLogs()
       stopSatistic()
+      stopAdaptive()
       return
     }
     rulesTabShow.value = RULE_TAB_TYPE.RULES

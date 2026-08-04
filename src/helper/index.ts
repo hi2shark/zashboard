@@ -1,6 +1,6 @@
 import { capabilities } from '@/assembly/backend'
 import { connectionAccessor } from '@/assembly/connections'
-import { hiddenGroupMap, proxyMap } from '@/assembly/proxies'
+import { hasAdaptiveWeightedGroup, hiddenGroupMap, proxyMap } from '@/assembly/proxies'
 import { NOT_CONNECTED, PROXY_CHAIN_DIRECTION, PROXY_TYPE, ROUTE_NAME } from '@/constant'
 import { showNotification } from '@/helper/notification'
 import {
@@ -128,6 +128,7 @@ export const renderRoutes = computed(() => {
   const routeCapable: Partial<Record<ROUTE_NAME, boolean>> = {
     [ROUTE_NAME.rules]: caps.rules,
     [ROUTE_NAME.tools]: caps.tools,
+    [ROUTE_NAME.adaptive]: hasAdaptiveWeightedGroup.value,
   }
   return Object.values(ROUTE_NAME).filter((r) => {
     if (r === ROUTE_NAME.setup) return false

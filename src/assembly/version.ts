@@ -5,7 +5,6 @@
 //(基于配置类型)语义不同:Clash 通道也可能连到 sing-box 兼容核心。
 import { fetchClashVersion, restartCoreAPI, upgradeCoreAPI, upgradeUIAPI } from '@/api/clash'
 import { MIHOMO, MIHOMO_CHANNEL } from '@/constant'
-import { autoUpgradeCore, autoUpgradeDashboard, checkUpgradeCore } from '@/store/settings'
 import { activeBackend } from '@/store/setup'
 import { computed, ref, watch } from 'vue'
 import { isSingboxBackend } from './backend'
@@ -77,13 +76,8 @@ watch(
 
       version.value = data?.version || ''
       startedAt.value = isSingboxBackend.value ? await fetchSingboxStartedAt() : 0
-      if (isSingBoxCore.value || !checkUpgradeCore.value || activeBackend.value?.disableUpgradeCore)
-        return
-      isCoreUpdateAvailable.value = await fetchBackendUpdateAvailableAPI()
-
-      if (isCoreUpdateAvailable.value && autoUpgradeCore.value) {
-        upgradeCoreAPI('auto')
-      }
+      // 本 fork 屏蔽核心更新检测，不请求 GitHub releases。
+      isCoreUpdateAvailable.value = false
     }
   },
   { immediate: true },
@@ -159,10 +153,8 @@ export const fetchBackendUpdateAvailableAPI = async () => {
 export const isUIUpdateAvailable = ref(false)
 
 export const checkUIUpdate = async () => {
-  isUIUpdateAvailable.value = await fetchIsUIUpdateAvailable()
-  if (isUIUpdateAvailable.value && autoUpgradeDashboard.value) {
-    upgradeUIAPI()
-  }
+  // 本 fork 屏蔽面板更新检测，不请求 GitHub releases。
+  isUIUpdateAvailable.value = false
 }
 
 // 内核 / UI 维护动作(Clash 专属,无后端分支),经版本域门面暴露给 view。

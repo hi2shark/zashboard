@@ -128,6 +128,19 @@ export const hasSmartGroup = computed(() => {
   )
 })
 
+const isAdaptiveWeightedGroup = (proxy: Proxy) =>
+  proxy.type.toLowerCase() === PROXY_TYPE.LoadBalance && proxy.strategy === 'adaptive-weighted'
+
+export const hasAdaptiveWeightedGroup = computed(() => {
+  return Object.values(proxyMap.value).some(isAdaptiveWeightedGroup)
+})
+
+export const adaptiveWeightedGroups = computed(() => {
+  return Object.values(proxyMap.value)
+    .filter(isAdaptiveWeightedGroup)
+    .map((proxy) => proxy.name)
+})
+
 // ---------- 按后端路由的组装动作 ----------
 
 interface ProxiesBackend {

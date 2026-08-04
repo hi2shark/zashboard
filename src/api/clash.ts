@@ -1,6 +1,7 @@
 import { getUrlFromBackend } from '@/helper/utils'
 import { activeBackend } from '@/store/setup'
 import type {
+  AdaptiveMetricsSnapshot,
   Backend,
   Config,
   DNSQuery,
@@ -84,6 +85,38 @@ export const fetchSmartGroupWeightsAPI = (proxyName: string) => {
 
 export const flushSmartGroupWeightsAPI = () => {
   return axios.post(`/cache/smart/flush`)
+}
+
+export type AdaptiveMetricsQuery = {
+  target?: string
+  node?: string
+  interval?: string
+}
+
+export const fetchAdaptiveMetricsAPI = (groupName: string, params?: AdaptiveMetricsQuery) => {
+  const query: Record<string, string> = {}
+  if (params?.target) query.target = params.target
+  if (params?.node) query.node = params.node
+
+  return axios.get<AdaptiveMetricsSnapshot>(`/group/${encodeURIComponent(groupName)}/adaptive`, {
+    params: query,
+  })
+}
+
+export const createAdaptiveMetricsWebSocket = (
+  groupName: string,
+  params?: AdaptiveMetricsQuery,
+) => {
+  const searchParams: Record<string, string> = {
+    interval: params?.interval || '1000',
+  }
+  if (params?.target) searchParams.target = params.target
+  if (params?.node) searchParams.node = params.node
+
+  return createClashWebSocket<AdaptiveMetricsSnapshot>(
+    `group/${encodeURIComponent(groupName)}/adaptive`,
+    searchParams,
+  )
 }
 
 export const fetchProxyProviderAPI = () => {
