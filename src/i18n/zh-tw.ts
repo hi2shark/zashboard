@@ -587,6 +587,7 @@ const zhTW: LANG_MESSAGE = {
   adaptiveSlowStart: '慢啟動',
   adaptiveSuccessRate: '成功率',
   adaptiveLatency: '延遲',
+  adaptiveLatencyFactor: '延遲因子',
   adaptiveFailures: '連續失敗',
   adaptiveActiveConns: '活躍連線',
   adaptiveLastError: '最近錯誤',

@@ -97,6 +97,7 @@ export type AdaptiveMetricsConfig = {
   maxWeight: number
   minWeight: number
   ewmaAlpha: number
+  latencyAware: boolean
 }
 
 export type AdaptiveMetricsProbe = {
@@ -133,6 +134,7 @@ export type AdaptiveMetricsNode = {
   baseWeight: number
   currentWeight: number
   effectiveWeight: number
+  latencyFactor: number
   slowStartProgress: number
   dialLatencyEwmaMillis: number
   successRateEwma: number

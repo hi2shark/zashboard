@@ -587,6 +587,7 @@ const zh: LANG_MESSAGE = {
   adaptiveSlowStart: '慢启动',
   adaptiveSuccessRate: '成功率',
   adaptiveLatency: '延迟',
+  adaptiveLatencyFactor: '延迟因子',
   adaptiveFailures: '连续失败',
   adaptiveActiveConns: '活跃连接',
   adaptiveLastError: '最近错误',

@@ -118,6 +118,8 @@ const configCapsules = computed(() => {
       `+${config.increaseStep}/-${config.decreaseStep}`,
       `retries=${config.retries}`,
       `weight=${config.minWeight}-${config.baseWeight}-${config.maxWeight}`,
+      `latency-aware=${config.latencyAware ? 'on' : 'off'}`,
+      `ewma-α=${config.ewmaAlpha}`,
     ]
   }
 

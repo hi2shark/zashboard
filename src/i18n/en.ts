@@ -597,6 +597,7 @@ const en = {
   adaptiveSlowStart: 'Slow-start',
   adaptiveSuccessRate: 'Success rate',
   adaptiveLatency: 'Latency',
+  adaptiveLatencyFactor: 'Latency factor',
   adaptiveFailures: 'Failures',
   adaptiveActiveConns: 'Active',
   adaptiveLastError: 'Last error',

@@ -599,6 +599,7 @@ const ru: LANG_MESSAGE = {
   adaptiveSlowStart: 'Slow-start',
   adaptiveSuccessRate: 'Успех',
   adaptiveLatency: 'Задержка',
+  adaptiveLatencyFactor: 'Фактор задержки',
   adaptiveFailures: 'Сбои',
   adaptiveActiveConns: 'Активные',
   adaptiveLastError: 'Последняя ошибка',

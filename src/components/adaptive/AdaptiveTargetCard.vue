@@ -57,6 +57,7 @@
             <th>{{ $t('adaptiveSlowStart') }}</th>
             <th>{{ $t('adaptiveSuccessRate') }}</th>
             <th>{{ $t('adaptiveLatency') }}</th>
+            <th>{{ $t('adaptiveLatencyFactor') }}</th>
             <th>{{ $t('adaptiveFailures') }}</th>
             <th>{{ $t('adaptiveActiveConns') }}</th>
             <th>{{ $t('adaptiveLastError') }}</th>
@@ -77,7 +78,10 @@
                 {{ stateLabel(node) }}
               </span>
             </td>
-            <td class="tabular-nums">{{ formatWeight(node.effectiveWeight) }}</td>
+            <td class="whitespace-nowrap tabular-nums">
+              <span>{{ formatWeight(node.effectiveWeight) }}</span>
+              <span class="text-base-content/50 ml-1 text-xs">{{ formatShare(node) }}</span>
+            </td>
             <td class="min-w-28">
               <div class="flex items-center gap-2">
                 <progress
@@ -92,6 +96,7 @@
             </td>
             <td class="tabular-nums">{{ formatPercent(node.successRateEwma) }}</td>
             <td class="tabular-nums">{{ formatLatency(node.dialLatencyEwmaMillis) }}</td>
+            <td class="tabular-nums">{{ formatFactor(node.latencyFactor) }}</td>
             <td class="tabular-nums">{{ node.consecutiveFailures }}</td>
             <td class="tabular-nums">{{ node.activeConnections }}</td>
             <td
@@ -146,6 +151,13 @@ const exitNames = computed(() =>
 const title = computed(() => exitNames.value || props.target.key)
 const showSubtitle = computed(() => !!exitNames.value)
 
+const weightSum = computed(() =>
+  props.target.nodes.reduce((sum, node) => {
+    const w = node.effectiveWeight
+    return sum + (Number.isFinite(w) && w > 0 ? w : 0)
+  }, 0),
+)
+
 const stateBadgeClass = (node: AdaptiveMetricsNode) => {
   if (node.state === 'normal') return 'badge-success'
   if (node.state === 'recovering') return 'badge-warning'
@@ -185,6 +197,17 @@ const formatLatency = (value: number) => {
   return `${value.toFixed(1)}ms`
 }
 
+const formatFactor = (value: number) => {
+  if (!Number.isFinite(value)) return '-'
+  return value.toFixed(2)
+}
+
+const formatShare = (node: AdaptiveMetricsNode) => {
+  const sum = weightSum.value
+  if (sum <= 0 || !Number.isFinite(node.effectiveWeight) || node.effectiveWeight <= 0) return '-'
+  return `${((node.effectiveWeight / sum) * 100).toFixed(1)}%`
+}
+
 const showNodeTip = (event: Event, node: AdaptiveMetricsNode) => {
   const tag = document.createElement('div')
   tag.className = 'flex flex-col gap-0.5 text-xs'
@@ -193,7 +216,7 @@ const showNodeTip = (event: Event, node: AdaptiveMetricsNode) => {
   name.textContent = node.name
   const meta = document.createElement('div')
   meta.className = 'opacity-80'
-  meta.textContent = `${stateLabel(node)} · w=${formatWeight(node.effectiveWeight)}`
+  meta.textContent = `${stateLabel(node)} · w=${formatWeight(node.effectiveWeight)} · ${formatShare(node)} · factor=${formatFactor(node.latencyFactor)}`
   tag.append(name, meta)
   showTip(event, tag)
 }
