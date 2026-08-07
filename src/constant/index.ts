@@ -136,6 +136,7 @@ export enum SORT_DIRECTION {
 export enum CONNECTION_TAB_TYPE {
   ACTIVE = 'activeConnections',
   CLOSED = 'closedConnections',
+  ALL = 'allConnections',
 }
 
 export enum LOG_LEVEL {
@@ -146,7 +147,6 @@ export enum LOG_LEVEL {
   Error = 'error',
   Fatal = 'fatal',
   Panic = 'panic',
-  Silent = 'silent',
 }
 
 export enum ROUTE_NAME {
@@ -317,6 +317,7 @@ export enum OVERVIEW_CARD {
   NetworkCard = 'NetworkCard',
   ProviderTrafficOverview = 'ProviderTrafficOverview',
   TopologyCharts = 'TopologyCharts',
+  EarthGlobeCard = 'EarthGlobeCard',
   ConnectionHistory = 'ConnectionHistory',
   RuleHitCountCard = 'RuleHitCountCard',
 }
