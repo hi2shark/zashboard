@@ -5,23 +5,14 @@
     class="flex flex-col gap-3 text-sm"
   >
     <div class="flex items-center gap-2 px-1">
-      <div class="indicator">
-        <span
-          v-if="isCoreUpdateAvailable"
-          class="indicator-item top-1 -right-1 flex"
-        >
-          <span class="bg-secondary absolute h-2 w-2 animate-ping rounded-full"></span>
-          <span class="bg-secondary h-2 w-2 rounded-full"></span>
-        </span>
-        <a
-          class="flex cursor-pointer items-center gap-2 text-lg font-semibold"
-          :href="coreBrand.url"
-          target="_blank"
-        >
-          {{ $t('backend') }}
-          <BackendVersion class="text-sm font-normal" />
-        </a>
-      </div>
+      <a
+        class="flex cursor-pointer items-center gap-2 text-lg font-semibold"
+        :href="coreBrand.url"
+        target="_blank"
+      >
+        {{ $t('backend') }}
+        <BackendVersion class="text-sm font-normal" />
+      </a>
     </div>
 
     <div
@@ -36,20 +27,6 @@
       </SettingItem>
 
       <template v-if="can('coreActions')">
-        <SettingItem
-          :setting-key="k.upgradeCore"
-          :when="can('coreUpgrade') && !activeBackend?.disableUpgradeCore"
-        >
-          <div class="setting-item-label">
-            {{ $t('upgradeCore') }}
-          </div>
-          <button
-            class="btn btn-neutral btn-sm"
-            @click="showUpgradeCoreModal = true"
-          >
-            <ArrowUpCircleIcon class="h-4 w-4" />
-          </button>
-        </SettingItem>
         <SettingItem
           :setting-key="k.restartCore"
           :when="can('coreRestart')"
@@ -223,36 +200,9 @@
             @change="handlerAllowLanChange"
           />
         </SettingItem>
-        <template v-if="!activeBackend?.disableUpgradeCore">
-          <SettingItem :setting-key="k.checkCoreUpgrade">
-            <div class="setting-item-label">
-              {{ $t('checkCoreUpgrade') }}
-            </div>
-            <input
-              class="toggle"
-              type="checkbox"
-              v-model="checkUpgradeCore"
-              @change="handlerCheckUpgradeCoreChange"
-            />
-          </SettingItem>
-          <SettingItem
-            :setting-key="k.autoUpgradeCore"
-            :when="checkUpgradeCore"
-          >
-            <div class="setting-item-label">
-              {{ $t('autoUpgradeCore') }}
-            </div>
-            <input
-              class="toggle"
-              type="checkbox"
-              v-model="autoUpgradeCore"
-            />
-          </SettingItem>
-        </template>
       </div>
     </div>
 
-    <UpgradeCoreModal v-model="showUpgradeCoreModal" />
     <UpdateConfigModal v-model="showUpdateConfigModal" />
   </div>
 </template>
@@ -264,7 +214,7 @@ import {
   reloadConfigsAPI,
   updateGeoDataAPI,
 } from '@/assembly/config'
-import { coreBrand, isCoreUpdateAvailable, restartCoreAPI } from '@/assembly/version'
+import { coreBrand, restartCoreAPI } from '@/assembly/version'
 import BackendVersion from '@/components/common/BackendVersion.vue'
 import BackendPortsGrid from '@/components/settings/backend/BackendPortsGrid.vue'
 import BackendSwitch from '@/components/settings/backend/BackendSwitch.vue'
@@ -278,27 +228,22 @@ import { fetchProxies, flushSmartGroupWeightsAPI } from '@/assembly/proxies'
 import { configs, fetchConfigs, updateConfigs } from '@/assembly/config'
 import { hasSmartGroup } from '@/assembly/proxies'
 import { fetchRules } from '@/assembly/rules'
-import { autoUpgradeCore, checkUpgradeCore } from '@/store/settings'
 import { activeBackend } from '@/store/setup'
 import {
   ArrowDownTrayIcon,
   ArrowPathIcon,
   ArrowPathRoundedSquareIcon,
-  ArrowUpCircleIcon,
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 import UpdateConfigModal from './UpdateConfigModal.vue'
-import UpgradeCoreModal from './UpgradeCoreModal.vue'
 
 const k = BACKEND_ITEM_KEYS
 const isVisibleBackendSwitch = useIsSettingVisible(k.backend)
 const isVisiblePorts = useIsSettingVisible(k.ports)
 const isVisibleTunMode = useIsSettingVisible(k.tunMode)
 const isVisibleAllowLan = useIsSettingVisible(k.allowLan)
-const isVisibleCheckUpgrade = useIsSettingVisible(k.checkCoreUpgrade)
-const isVisibleAutoUpgrade = useIsSettingVisible(k.autoUpgradeCore)
 const isVisibleDnsQuery = useIsSettingVisible(k.DNSQuery)
 const canShowTunMode = computed(
   () => isVisibleTunMode.value && !activeBackend.value?.disableTunMode,
@@ -311,7 +256,6 @@ const renderableActionKeys = computed(() => {
 
   const keys: string[] = []
 
-  if (can('coreUpgrade') && !activeBackend.value?.disableUpgradeCore) keys.push(k.upgradeCore)
   if (can('coreRestart')) keys.push(k.restartCore)
   if (can('reloadConfigs')) keys.push(k.reloadConfigs)
   if (can('updateConfigs')) keys.push(k.updateConfigs)
@@ -343,9 +287,7 @@ const hasVisibleSettings = computed(() => {
     !!configs.value &&
     (isVisiblePorts.value ||
       (configs.value.tun && canShowTunMode.value) ||
-      isVisibleAllowLan.value ||
-      (!activeBackend.value?.disableUpgradeCore &&
-        (isVisibleCheckUpgrade.value || (checkUpgradeCore.value && isVisibleAutoUpgrade.value))))
+      isVisibleAllowLan.value)
   )
 })
 
@@ -355,7 +297,6 @@ const reloadAll = () => {
   fetchProxies()
 }
 
-const showUpgradeCoreModal = ref(false)
 const showUpdateConfigModal = ref(false)
 
 const isCoreRestarting = ref(false)
@@ -408,13 +349,6 @@ const handlerClickUpdateGeo = async () => {
     })
   } catch {
     isGeoUpdating.value = false
-  }
-}
-
-const handlerCheckUpgradeCoreChange = () => {
-  if (!checkUpgradeCore.value) {
-    autoUpgradeCore.value = false
-    isCoreUpdateAvailable.value = false
   }
 }
 

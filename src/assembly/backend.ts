@@ -106,7 +106,8 @@ const soft = computed(() => {
 
   return {
     // ---------- mihomo 内核侧 ----------
-    coreUpgrade: mihomoOrForkCore,
+    // fork 使用非官方核心,永久关闭官方 MetaCubeX 升级/检查。
+    coreUpgrade: false,
     coreRestart: mihomoOrForkCore,
     reloadConfigs: mihomoOrForkCore,
     updateConfigs: mihomoOrForkCore,
@@ -114,7 +115,7 @@ const soft = computed(() => {
     // /storage/zashboard 设置同步,mihomo 扩展
     syncSettings: mihomoOrForkCore,
     independentLatency: mihomoOrForkCore,
-    coreUpdateCheck: mihomo,
+    coreUpdateCheck: false,
     // ports / tun / allow-lan 等 PATCH /configs 配置块。
     configPatch: mihomo,
 
