@@ -224,6 +224,7 @@ import SettingItem from '@/components/settings/SettingItem.vue'
 import { isSettingVisible, useIsSettingVisible } from '@/composables/settings'
 import { BACKEND_ITEM_KEYS } from '@/config/settingsItems'
 import { showNotification } from '@/helper/notification'
+import { notifyRequestError } from '@/helper/requestError'
 import { fetchProxies, flushSmartGroupWeightsAPI } from '@/assembly/proxies'
 import { configs, fetchConfigs, updateConfigs } from '@/assembly/config'
 import { hasSmartGroup } from '@/assembly/proxies'
@@ -285,9 +286,7 @@ const hasVisibleSettings = computed(() => {
   return (
     can('configPatch') &&
     !!configs.value &&
-    (isVisiblePorts.value ||
-      (configs.value.tun && canShowTunMode.value) ||
-      isVisibleAllowLan.value)
+    (isVisiblePorts.value || (configs.value.tun && canShowTunMode.value) || isVisibleAllowLan.value)
   )
 })
 
@@ -308,12 +307,13 @@ const handlerClickRestartCore = async () => {
     setTimeout(() => {
       reloadAll()
     }, 500)
-    isCoreRestarting.value = false
     showNotification({
       content: 'restartCoreSuccess',
       type: 'alert-success',
     })
-  } catch {
+  } catch (e) {
+    notifyRequestError(e)
+  } finally {
     isCoreRestarting.value = false
   }
 }
@@ -325,12 +325,13 @@ const handlerClickReloadConfigs = async () => {
   try {
     await reloadConfigsAPI()
     reloadAll()
-    isConfigReloading.value = false
     showNotification({
       content: 'reloadConfigsSuccess',
       type: 'alert-success',
     })
-  } catch {
+  } catch (e) {
+    notifyRequestError(e)
+  } finally {
     isConfigReloading.value = false
   }
 }
@@ -342,44 +343,65 @@ const handlerClickUpdateGeo = async () => {
   try {
     await updateGeoDataAPI()
     reloadAll()
-    isGeoUpdating.value = false
     showNotification({
       content: 'updateGeoSuccess',
       type: 'alert-success',
     })
-  } catch {
+  } catch (e) {
+    notifyRequestError(e)
+  } finally {
     isGeoUpdating.value = false
   }
 }
 
 const hanlderTunModeChange = async () => {
-  await updateConfigs({ tun: { enable: configs.value?.tun.enable } })
+  try {
+    await updateConfigs({ tun: { enable: configs.value?.tun.enable } })
+  } catch (e) {
+    notifyRequestError(e)
+  }
 }
 const handlerAllowLanChange = async () => {
-  await updateConfigs({ ['allow-lan']: configs.value?.['allow-lan'] })
+  try {
+    await updateConfigs({ ['allow-lan']: configs.value?.['allow-lan'] })
+  } catch (e) {
+    notifyRequestError(e)
+  }
 }
 
 const handleFlushDNSCache = async () => {
-  await flushDNSCacheAPI()
-  showNotification({
-    content: 'flushDNSCacheSuccess',
-    type: 'alert-success',
-  })
+  try {
+    await flushDNSCacheAPI()
+    showNotification({
+      content: 'flushDNSCacheSuccess',
+      type: 'alert-success',
+    })
+  } catch (e) {
+    notifyRequestError(e)
+  }
 }
 
 const handleFlushFakeIP = async () => {
-  await flushFakeIPAPI()
-  showNotification({
-    content: 'flushFakeIPSuccess',
-    type: 'alert-success',
-  })
+  try {
+    await flushFakeIPAPI()
+    showNotification({
+      content: 'flushFakeIPSuccess',
+      type: 'alert-success',
+    })
+  } catch (e) {
+    notifyRequestError(e)
+  }
 }
 
 const handleFlushSmartWeights = async () => {
-  await flushSmartGroupWeightsAPI()
-  showNotification({
-    content: 'flushSmartWeightsSuccess',
-    type: 'alert-success',
-  })
+  try {
+    await flushSmartGroupWeightsAPI()
+    showNotification({
+      content: 'flushSmartWeightsSuccess',
+      type: 'alert-success',
+    })
+  } catch (e) {
+    notifyRequestError(e)
+  }
 }
 </script>
