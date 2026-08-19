@@ -85,6 +85,8 @@ export type AdaptiveMetricsCounters = {
 export type AdaptiveMetricsConfig = {
   targetScope: string
   probeMode: string
+  probeUrl?: string
+  probeExpectedStatus?: string
   probeIntervalMillis: number
   probeTimeoutMillis: number
   failureThreshold: number
@@ -137,6 +139,7 @@ export type AdaptiveMetricsNode = {
   latencyFactor: number
   slowStartProgress: number
   dialLatencyEwmaMillis: number
+  probeLatencyEwmaMillis: number
   successRateEwma: number
   consecutiveFailures: number
   activeConnections: number
@@ -151,6 +154,7 @@ export type AdaptiveMetricsNode = {
 }
 
 export type AdaptiveMetricsTarget = AdaptiveMetricsTargetKey & {
+  latencyBasis: string
   nodes: AdaptiveMetricsNode[]
 }
 

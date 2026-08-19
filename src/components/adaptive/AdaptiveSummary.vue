@@ -108,8 +108,11 @@ const configCapsules = computed(() => {
   const single = singleSnapshot.value
   if (single) {
     const config = single.config
-    return [
-      `probe=${config.probeMode}`,
+    const capsules = [`probe=${config.probeMode}`]
+    if (config.probeUrl) capsules.push(`url=${config.probeUrl}`)
+    if (config.probeExpectedStatus) capsules.push(`expect=${config.probeExpectedStatus}`)
+    capsules.push(
+      `concurrency=${single.probe.maxConcurrency}`,
       `${config.probeIntervalMillis}ms`,
       `timeout=${config.probeTimeoutMillis}ms`,
       `fail=${config.failureThreshold}`,
@@ -120,11 +123,23 @@ const configCapsules = computed(() => {
       `weight=${config.minWeight}-${config.baseWeight}-${config.maxWeight}`,
       `latency-aware=${config.latencyAware ? 'on' : 'off'}`,
       `ewma-α=${config.ewmaAlpha}`,
-    ]
+    )
+    return capsules
   }
 
   const modes = [...new Set(snapshotList.value.map((s) => s.config.probeMode))]
-  return [`groups=${snapshotList.value.length}`, ...modes.map((m) => `probe=${m}`)]
+  const urls = [
+    ...new Set(
+      snapshotList.value
+        .map((s) => s.config.probeUrl)
+        .filter((url): url is string => !!url),
+    ),
+  ]
+  return [
+    `groups=${snapshotList.value.length}`,
+    ...modes.map((m) => `probe=${m}`),
+    ...urls.map((url) => `url=${url}`),
+  ]
 })
 
 const rateCards = computed(() => {

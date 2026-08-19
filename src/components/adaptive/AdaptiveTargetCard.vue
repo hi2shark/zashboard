@@ -10,7 +10,16 @@
         :class="{ 'rotate-90': expanded }"
       />
       <div class="min-w-0 flex-1">
-        <div class="truncate font-medium">{{ title }}</div>
+        <div class="flex min-w-0 items-center gap-2">
+          <span class="truncate font-medium">{{ title }}</span>
+          <span
+            v-if="target.latencyBasis"
+            class="badge badge-sm badge-ghost flex-none font-normal"
+            :title="$t('adaptiveLatencyBasis')"
+          >
+            {{ target.latencyBasis }}
+          </span>
+        </div>
         <div
           v-if="showSubtitle"
           class="text-base-content/50 truncate text-xs"
@@ -95,7 +104,15 @@
               </div>
             </td>
             <td class="tabular-nums">{{ formatPercent(node.successRateEwma) }}</td>
-            <td class="tabular-nums">{{ formatLatency(node.dialLatencyEwmaMillis) }}</td>
+            <td class="whitespace-nowrap tabular-nums">
+              <div>{{ formatLatency(primaryLatency(node)) }}</div>
+              <div
+                v-if="hasLatency(secondaryLatency(node))"
+                class="text-base-content/50 text-xs"
+              >
+                {{ secondaryLatencyLabel }} {{ formatLatency(secondaryLatency(node)) }}
+              </div>
+            </td>
             <td class="tabular-nums">{{ formatFactor(node.latencyFactor) }}</td>
             <td class="tabular-nums">{{ node.consecutiveFailures }}</td>
             <td class="tabular-nums">{{ node.activeConnections }}</td>
@@ -151,6 +168,11 @@ const exitNames = computed(() =>
 const title = computed(() => exitNames.value || props.target.key)
 const showSubtitle = computed(() => !!exitNames.value)
 
+const usesProbeBasis = computed(() => props.target.latencyBasis === 'probe')
+const secondaryLatencyLabel = computed(() =>
+  usesProbeBasis.value ? t('adaptiveDialLatency') : t('adaptiveProbeLatency'),
+)
+
 const weightSum = computed(() =>
   props.target.nodes.reduce((sum, node) => {
     const w = node.effectiveWeight
@@ -197,6 +219,14 @@ const formatLatency = (value: number) => {
   return `${value.toFixed(1)}ms`
 }
 
+const hasLatency = (value: number) => Number.isFinite(value) && value > 0
+
+const primaryLatency = (node: AdaptiveMetricsNode) =>
+  usesProbeBasis.value ? node.probeLatencyEwmaMillis : node.dialLatencyEwmaMillis
+
+const secondaryLatency = (node: AdaptiveMetricsNode) =>
+  usesProbeBasis.value ? node.dialLatencyEwmaMillis : node.probeLatencyEwmaMillis
+
 const formatFactor = (value: number) => {
   if (!Number.isFinite(value)) return '-'
   return value.toFixed(2)
@@ -217,7 +247,10 @@ const showNodeTip = (event: Event, node: AdaptiveMetricsNode) => {
   const meta = document.createElement('div')
   meta.className = 'opacity-80'
   meta.textContent = `${stateLabel(node)} · w=${formatWeight(node.effectiveWeight)} · ${formatShare(node)} · factor=${formatFactor(node.latencyFactor)}`
-  tag.append(name, meta)
+  const latency = document.createElement('div')
+  latency.className = 'opacity-70'
+  latency.textContent = `${t('adaptiveProbeLatency')} ${formatLatency(node.probeLatencyEwmaMillis)} · ${t('adaptiveDialLatency')} ${formatLatency(node.dialLatencyEwmaMillis)}`
+  tag.append(name, meta, latency)
   showTip(event, tag)
 }
 </script>
